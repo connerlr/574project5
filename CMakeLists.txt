@@ -26,6 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
   message_filters
   sensor_msgs
   laser_geometry
+  move_base_msgs
 )
 
 
@@ -39,6 +40,7 @@ catkin_package(CATKIN_DEPENDS
   nav_msgs 
   visualization_msgs
   sensor_msgs
+  move_base_msgs
 ) 
 include_directories(include ${catkin_INCLUDE_DIRS})
 

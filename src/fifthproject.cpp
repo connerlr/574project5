@@ -3,8 +3,6 @@
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/LaserScan.h"
 #include <angles/angles.h>
-#include <cstdlib> // Needed for rand()
-#include <ctime> // Needed to seed random number generator with a time value
 #include <boost/thread/mutex.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -15,7 +13,12 @@
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include <math.h>
 #include "nav_msgs/OccupancyGrid.h"
+#include <actionlib/client/simple_action_client.h>
+#include <move_base_msgs/MoveBaseAction.h>
+#include <time.h>
 
+
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 class fifthproject
 {
@@ -29,13 +32,13 @@ class fifthproject
 		odomX = 0;
 		odomY = 0;
 		pub = nh.advertise<geometry_msgs::Twist>
-			("mobile_base/commands/velocity", 100);
+			("cmd_vel", 100);
 		odomSub = nh.subscribe("odom", 
 			10, &fifthproject::odomCallBack, this);
-		gmap = nh.subscribe("/kobuki_gmap", 1000, 
-			&fifthproject::gmapCallBack, this);
+		gmap = nh.subscribe("map", 
+			10, &fifthproject::gmapCallBack, this);
 	}
-	void gmapCallBack(const sensor_msgs::LaserScan::ConstPtr& msg)
+	void gmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 	{
 
 
@@ -48,6 +51,32 @@ class fifthproject
 		odomHeading = tf::getYaw(msg->pose.pose.orientation);
 			
 	}
+
+	
+	void explore(MoveBaseClient ac)
+	{
+		move_base_msgs::MoveBaseGoal goal;
+
+		goal.target_pose.header.frame_id = "base_link";
+		goal.target_pose.header.stamp = ros::Time::now();
+
+		goal.target_pose.pose.position.x = 1.0;
+		goal.target_pose.pose.orientation.w = 1.0;
+
+		ac.sendGoal(goal);
+
+		ac.waitForResult();
+		
+		if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+		{	
+			ROS_INFO_STREAM("HOORAY???");
+		}
+		else
+		{
+			ROS_INFO_STREAM("AWW??");
+		}
+	}
+
 void translate(double d)
 	{
 		geometry_msgs::Twist msg;
@@ -66,7 +95,7 @@ void translate(double d)
 		while (ros::ok()) 
 		{
 			//ROS_INFO("odomX %f", odomX);
-			if((odomX + odomY) != 0.0)
+			//if((odomX + odomY) != 0.0)
 			{
 				if(count == 0)
 				{		
@@ -81,7 +110,7 @@ void translate(double d)
 				if(thisD >= d)
 				{
 					
-					msg.linear.x = 0.0;
+					msg.linear.x = 0.1;
 					
 					pub.publish(msg);
 					break;
@@ -117,6 +146,20 @@ void translate(double d)
 		msg.linear.x = 0.0;
 		pub.publish(msg);
 	}
+
+
+	void moveForward()
+	{
+		while(ros::ok())
+		{
+			geometry_msgs::Twist msg;
+			msg.angular.z = 0.5;
+			msg.linear.x = 0.5;
+			pub.publish(msg);
+		}
+
+
+	}
 };
 
 
@@ -127,7 +170,10 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "fifthproject");
 	ros::NodeHandle nh;
 	fifthproject *proj = new fifthproject(nh);
-	proj->translate(1);
+
+	MoveBaseClient ac("move_base", true);
+	proj->moveForward();
+	proj->explore(ac);
 	ros::shutdown();
 
 }
