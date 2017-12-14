@@ -1,24 +1,34 @@
-#include "ros/ros.h"
-#include "nav_msgs/Odometry.h"
-#include "geometry_msgs/Twist.h"
-#include "sensor_msgs/LaserScan.h"
-#include <angles/angles.h>
-#include <boost/thread/mutex.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <tf/transform_listener.h>
-#include <sensor_msgs/PointCloud.h>
-#include <laser_geometry/laser_geometry.h>
-#include "geometry_msgs/PoseWithCovarianceStamped.h"
 #include <math.h>
-#include "nav_msgs/OccupancyGrid.h"
-#include <actionlib/client/simple_action_client.h>
-#include <move_base_msgs/MoveBaseAction.h>
 #include <time.h>
 
 
+#include <angles/angles.h>
+//#include <boost/thread/mutex.hpp>
+//#include <boost/date_time/posix_time/posix_time.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
+
+
+#include "ros/ros.h"
+
+#include "nav_msgs/Odometry.h"
+#include "geometry_msgs/Twist.h"
+#include "sensor_msgs/LaserScan.h"
+#include <sensor_msgs/PointCloud.h>
+//#include <laser_geometry/laser_geometry.h>
+#include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include "nav_msgs/OccupancyGrid.h"
+
+#include <tf/transform_listener.h>
+
+#include <move_base_msgs/MoveBaseAction.h>
+#include <actionlib/client/simple_action_client.h>
+
+
+
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
+
 
 class fifthproject
 {
@@ -26,6 +36,7 @@ class fifthproject
 	double odomX, odomY, odomHeading;
 	ros::Publisher pub;
 	ros::Subscriber gmap, odomSub;	
+
 	fifthproject(ros::NodeHandle nh)
 	{
 		odomHeading = 0;//huge number fix
@@ -38,6 +49,7 @@ class fifthproject
 		gmap = nh.subscribe("map", 
 			10, &fifthproject::gmapCallBack, this);
 	}
+
 	void gmapCallBack(const nav_msgs::OccupancyGrid::ConstPtr& msg)
 	{
 
@@ -52,9 +64,10 @@ class fifthproject
 			
 	}
 
-	
-	void explore(MoveBaseClient ac)
+
+	void explore(MoveBaseClient &ac)
 	{
+		
 		move_base_msgs::MoveBaseGoal goal;
 
 		goal.target_pose.header.frame_id = "base_link";

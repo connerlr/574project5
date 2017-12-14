@@ -27,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   laser_geometry
   move_base_msgs
+  actionlib
 )
 
 
@@ -41,6 +42,7 @@ catkin_package(CATKIN_DEPENDS
   visualization_msgs
   sensor_msgs
   move_base_msgs
+  actionlib
 ) 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
@@ -48,7 +50,9 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+add_executable(hello_world src/test.cpp)
+target_link_libraries(hello_world ${catkin_LIBRARIES})
 add_executable(fifthproject  src/fifthproject.cpp)
 target_link_libraries(fifthproject ${catkin_LIBRARIES})
-target_link_libraries(fifthproject ${OpenCV_LIBS} ${BULLET_LIBRARIES})
-add_dependencies(fifthproject ${PROJECT_NAME}_generate_messages_cpp)
+#target_link_libraries(fifthproject ${OpenCV_LIBS} ${BULLET_LIBRARIES})
+#add_dependencies(fifthproject ${PROJECT_NAME}_generate_messages_cpp)
